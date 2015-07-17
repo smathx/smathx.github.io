@@ -51,19 +51,19 @@ Sorry - your browser does not support the HTML5 canvas element.
 </section>
 <form id="controls">
     <label for="angle">Angle:</label>
-    <input id="angle" type="range" min="0.0" max = "1.0" step="any"
+    <input id="angle" type="range" value="0" min="-2.0" max = "2.0" step="0.01"
            oninput="showValue('angle','angleValue')"
            onchange="drawStuff()">
     <output id="angleValue"></output>
     <br/>
     <label for="size">Size:</label>
-    <input id="size" type="range" min="0.5" max = "3.0" step="0.5"
+    <input id="size" type="range" value="1" min="0.5" max = "3.0" step="0.1"
            oninput="showValue('size','sizeValue')"
            onchange="drawStuff()">
     <output id="sizeValue"></output>
     <br/>
     <label for="level">Level:</label>
-    <input id="level" type="range" min="1" max = "8" step="1"
+    <input id="level" type="range" value="3" min="1" max = "6" step="1"
            oninput="showValue('level','levelValue')"
            onchange="drawStuff()">
     <output id="levelValue"></output>
