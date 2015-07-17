@@ -9,10 +9,6 @@ canvas {
     border: 1px solid blue; 
     padding: 10px;
 }
-#angleValue {
-    border: 1px solid black; 
-    padding: 2px;
-}
 </style>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -56,8 +52,22 @@ Sorry - your browser does not support the HTML5 canvas element.
 <form id="controls">
     <label for="angle">Angle:</label>
     <input id="angle" type="range" min="0.0" max = "1.0" step="any"
-           oninput="showValue('angle','angleValue')"/>
+           oninput="showValue('angle','angleValue')"
+           onchange="drawStuff()">
     <output id="angleValue"></output>
+    <br/>
+    <label for="size">Size:</label>
+    <input id="size" type="range" min="0.5" max = "3.0" step="0.5"
+           oninput="showValue('size','sizeValue')"
+           onchange="drawStuff()">
+    <output id="sizeValue"></output>
+    <br/>
+    <label for="level">Level:</label>
+    <input id="level" type="range" min="1" max = "8" step="1"
+           oninput="showValue('level','levelValue')"
+           onchange="drawStuff()">
+    <output id="levelValue"></output>
+    <br/>
 </form>
 </body>
 </html>

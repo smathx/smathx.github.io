@@ -3,42 +3,33 @@
 var canvas;
 var gl;
 var points = [];
-var NumTimesToSubdivide = 6;
 
 window.onload = function init() {
+    console.log('init');
+    initGL();
+    //drawStuff();
+}
 
-    canvas = document.getElementById("gl-canvas");
-    
-    gl = WebGLUtils.setupWebGL(canvas);
-    if (!gl) { 
-        alert( "Sorry - WebGL is not available." ); 
-    }
-        
-    var vertices = [
-        vec2(-1/2, -1/2),
-        vec2( 0,  1/2),
-        vec2( 1/2, -1/2)
-    ];
+function drawStuff() {
+    var angle = document.getElementById("angle");
+    var size  = document.getElementById("size");
+    var level = document.getElementById("level");
+    var style = document.getElementById("style");
+    console.log(angle);
+    console.log(size);
+    console.log(level);
+    console.log(style);
+    //size = 1;
+    //level = 2;
+    if (level < 1 || level > 8) { alert("level out of range!"); }
+    style = gl.POINTS;
+    points = [];
+    doTriangle(1, 0, 2);
+    setupDrawing();
+    render(style);
+}
 
-    divideTriangle(vertices[0], vertices[1], vertices[2],
-                   NumTimesToSubdivide);
-                   
-    var theta = 0;
-    
-    for (var i = 0; i < points.length; ++i) {
-    
-        var x = points[i][0];
-        var y = points[i][1];
-        var r = Math.sqrt(x*x+y*y);
-        //console.log(points[i]);
-        points[i][0] = x * Math.cos(r * theta) - y * Math.sin(r * theta);
-        points[i][1] = x * Math.sin(r * theta) + y * Math.cos(r * theta);    
-        //console.log(r);
-        //console.log(x);
-        //console.log(y);
-        //console.log(points[i]);
-    }
-    console.log(points);
+function setupDrawing() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
 
@@ -52,15 +43,45 @@ window.onload = function init() {
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
+}
 
-    render();
-};
+function initGL() {
+    canvas = document.getElementById("gl-canvas");
+    
+    gl = WebGLUtils.setupWebGL(canvas);
+    if (!gl) { 
+        alert( "Sorry - WebGL is not available." ); 
+    }    
+}
+
+function doTriangle(size, angle, level) {
+
+    var vertices = 
+    [
+        vec2(-size/2, -size/2),
+        vec2(      0,  size/2),
+        vec2( size/2, -size/2)
+    ];
+
+    divideTriangle(vertices[0], vertices[1], vertices[2], level);
+                   
+    for (var i = 0; i < points.length; ++i) {
+    
+        var x = points[i][0];
+        var y = points[i][1];
+        var r = Math.sqrt(x*x + y*y);
+        
+        points[i][0] = x * Math.cos(r * angle) - y * Math.sin(r * angle);
+        points[i][1] = x * Math.sin(r * angle) + y * Math.cos(r * angle);    
+    }
+}
 
 function triangle(a, b, c) {
     points.push(a, b, c);
 }
 
 function divideTriangle(a, b, c, count) {
+    console.log(count);
     if (count === 0) {
         triangle(a, b, c);
     }
@@ -74,13 +95,13 @@ function divideTriangle(a, b, c, count) {
         divideTriangle(a, ab, ac, count);
         divideTriangle(c, ac, bc, count);
         divideTriangle(b, bc, ab, count);
-        //divideTriangle(ac, ab, bc, count);
+        divideTriangle(ac, ab, bc, count);
     }
 }
 
-function render() {
+function render(style) {
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.POINTS, 0, points.length);
+    gl.drawArrays(style, 0, points.length);
 }
 
 //end
