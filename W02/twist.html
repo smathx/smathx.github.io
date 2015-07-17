@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WebGL Assignment 1: Twist</title>
+
+<style>
+canvas { 
+    border: 1px solid blue; 
+    padding: 10px;
+}
+#angleValue {
+    border: 1px solid black; 
+    padding: 2px;
+}
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+void main() {
+    gl_Position = vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+</script>
+
+<script>
+function showValue(id, outputId) {
+    var out = document.getElementById(outputId);
+    var x = document.getElementById(id);
+    out.value = x.value;
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+
+<script type="text/javascript" src="twist.js"></script>
+</head>   
+
+<body>
+<section>
+<h1>WebGL Assignment 1: Twist</h1>
+<canvas id="gl-canvas" width="500" height="500">
+Sorry - your browser does not support the HTML5 canvas element.
+</canvas>
+</section>
+<form id="controls">
+    <label for="angle">Angle:</label>
+    <input id="angle" type="range" min="0.0" max = "1.0" step="any"
+           oninput="showValue('angle','angleValue')"/>
+    <output id="angleValue"></output>
+</form>
+</body>
+</html>
