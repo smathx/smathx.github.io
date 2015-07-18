@@ -1,4 +1,4 @@
-// twist.js    WebGL Assignment 1   16 July 2015
+// twist.js    WebGL Assignment 1   18 July 2015
 
 var canvas;
 var gl;
@@ -13,13 +13,14 @@ function drawStuff() {
     var angle = document.getElementById("angle").value;
     var size  = document.getElementById("size").value;
     var level = document.getElementById("level").value;
-    
+    var style = document.getElementById("style").value;
+
     points = [];
     doTriangle(size, level);        
     twist(angle, points);
     
     setupDrawing();
-    render();
+    render(style);
 }
 
 function setupDrawing() {
@@ -51,9 +52,9 @@ function doTriangle(size, level) {
 
     var vertices = 
     [
-        vec2(-size/2, -size/2),
-        vec2(      0,  size/2),
-        vec2( size/2, -size/2)
+        vec2(size, 0),
+        vec2(size * Math.cos(2 * Math.PI / 3), size * Math.sin(2 * Math.PI / 3)),
+        vec2(size * Math.cos(4 * Math.PI / 3), size * Math.sin(4 * Math.PI / 3)),
     ];
     
     divideTriangle(vertices[0], vertices[1], vertices[2], level);
@@ -93,11 +94,19 @@ function divideTriangle(a, b, c, count) {
     }
 }
 
-function render() {
+function render(style) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     
-    for (var i = 0; i < points.length; i += 3)
-        gl.drawArrays(gl.LINE_LOOP, i, 3);
+    if (style == "lines") {
+        for (var i = 0; i < points.length; i += 3)
+            gl.drawArrays(gl.LINE_LOOP, i, 3);
+    }
+    if (style == "points") {
+        gl.drawArrays(gl.POINTS, 0, points.length);
+    }
+    if (style == "triangles") {
+        gl.drawArrays(gl.TRIANGLES, 0, points.length);
+    }
 }
 
 //end
