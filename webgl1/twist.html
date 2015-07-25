@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WebGL Assignment 1: Twist</title>
+
+<style>
+canvas { 
+    border: 1px solid blue; 
+    padding: 10px;
+}
+fieldset {
+  padding:10px;
+  border-radius:10px;
+  width:500px;
+}
+input {
+  float:right;
+  margin-right:10px;
+  width:350px;
+}
+output {
+  float:right;
+  width:50px;
+}
+label {
+  display:inline-block;
+  margin-bottom:10px;
+  width:40px;
+}
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 v_Position;
+
+void main() {
+    gl_Position = v_Position;
+    gl_PointSize = 4.0;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+</script>
+
+<script>
+function showValue(id, outputId) {
+    var out = document.getElementById(outputId);
+    var x = document.getElementById(id);
+    out.value = x.value;
+}
+</script>
+
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+<script type="text/javascript" src="twist.js"></script>
+</head>   
+
+<body>
+<section>
+<h1>WebGL Assignment 1: Twist</h1>
+<canvas id="gl-canvas" width="500" height="500">
+Sorry - your browser does not support the HTML5 canvas element.
+</canvas>
+</section>
+<form id="controls">
+  <fieldset>
+    <legend>Controls</legend>
+    <label for="angle">Angle:</label>
+    <input id="angle" type="range" value="0" min="-5.0" max = "5.0" step="0.01"
+           oninput="showValue('angle','angleValue')"
+           onchange="drawStuff()">
+    <output id="angleValue"></output>
+    <br/>
+    <label for="size">Size:</label>
+    <input id="size" type="range" value="1" min="0.5" max = "3.0" step="0.1"
+           oninput="showValue('size','sizeValue')"
+           onchange="drawStuff()">
+    <output id="sizeValue"></output>
+    <br/>
+    <label for="level">Level:</label>
+    <input id="level" type="range" value="3" min="1" max = "6" step="1"
+           oninput="showValue('level','levelValue')"
+           onchange="drawStuff()">
+    <output id="levelValue"></output>
+    <br/>
+    <label for="style">Style:</label>
+    <select id="style" onchange="drawStuff()">
+        <option value="lines">Lines</option>
+        <option value="points">Points</option>
+        <option value="triangles">Triangles</option>
+    </select>
+  </fieldset>
+</form>
+</body>
+</html>
