@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WebGL Assignment 2: Draw</title>
+
+<!-- CSS ---------------------------------------------------------------------->
+<style>
+canvas{ 
+    border: 1px solid blue; 
+    padding: 10px;
+    cursor: crosshair;
+}
+fieldset {
+  padding:10px;
+  border-radius:10px;
+  width:500px;
+}
+#size {
+  float:right;
+  margin-right:10px;
+  width:350px;
+}
+output {
+  float:right;
+  width:50px;
+}
+label {
+  display:inline-block;
+  margin-bottom:10px;
+  width:60px;
+}
+</style>
+
+<!-- Vertex shader ------------------------------------------------------------>
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 aVertex;
+attribute vec4 aColour;
+varying vec4 vColour;
+uniform float u_pointSize;
+
+void main() {
+    gl_Position = aVertex;
+    gl_PointSize = u_pointSize;
+    vColour = aColour;
+}
+</script>
+
+<!-- Fragment shader ---------------------------------------------------------->
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec4 vColour;
+
+void main() {
+    gl_FragColor = vColour;
+}
+</script>
+
+<!-- Miscellaneous support scripts -------------------------------------------->
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="flatten.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+<script type="text/javascript" src="draw.js"></script>
+</head>
+
+<!-- Web page ----------------------------------------------------------------->
+<body>
+<section>
+<h1>WebGL Assignment 2: Draw</h1>
+<canvas id="webgl" width="500" height="500">
+Sorry - your browser does not support the HTML5 canvas element.
+</canvas>
+</section>
+<form id="controls">
+  <fieldset>
+    <legend>Controls</legend>
+    <label for="colour">Colour:</label>
+        <input type="radio" name="colour" onclick="setColour('red')" checked>Red
+        <input type="radio" name="colour" onclick="setColour('blue')">Blue
+        <input type="radio" name="colour" onclick="setColour('green')">Green
+        <input type="radio" name="colour" onclick="setColour('yellow')">Yellow
+        <input type="radio" name="colour" onclick="setColour('black')">Black
+    <br>
+    <label for="linestyle">Style:</label>
+        <input type="radio" name="style" onclick="setLineStyle('lines')" checked>Lines
+        <input type="radio" name="style" onclick="setLineStyle('points')">Points
+    <br>
+    <label for="size">Point size:</label>
+    <input id="size" type="range" value="10" min="1" max = "20" step="1"
+           oninput="showValue('size','sizeValue')"
+           onchange="setPointSize()">
+    <output id="sizeValue"></output>
+    <br><br>
+    <input type="button" value="Wipe Canvas" onclick="wipeCanvas()">
+  </fieldset>
+</form>
+</body>
+
+</html>
