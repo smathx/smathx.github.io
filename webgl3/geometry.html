@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Assignment 3: 3D Geometry</title>
+
+<script type="text/javascript" src="initShaders.js"></script>
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="MV.js"></script>
+
+<script type="text/javascript" src="geometry.js"></script>
+<script type="text/javascript" src="shape.js"></script>
+<script type="text/javascript" src="control.js"></script>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec3 aVertexPosition;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+
+void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 fColour;
+
+void main(void) {
+    gl_FragColor = fColour;
+}
+</script>
+<style type="text/css">
+  #webgl {
+    border: 1px solid black;
+    margin: 0 auto;
+  }
+  h2 {
+    text-align: center;
+  }
+  label, body {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 12px;
+  }
+  fieldset {
+    margin: 5px;
+    display: inline-block;
+    border-radius: 8px;
+    border: 0;
+  }
+  input, select {
+    vertical-align: middle;
+  }
+  * {
+    -webkit-user-select: none;
+  }
+  summary {
+    padding: 5px;
+  }
+  details {
+    background-color: #f8f8f8;
+    width: 500px;
+  }
+  .add-item-button {
+    margin: 10px;
+  }
+  aside {
+    float: right;
+  }
+  label::after {
+    content: ":"
+  }
+  .slider {
+    vertical-align: middle;
+    width: 200px;
+  }
+  .slider-output {
+    border: 1px solid black;
+    padding: 4px;
+    width: 30px;
+    margin-left: 10px;
+    font-size: .9em;
+  }
+  input[type=button] {
+    margin: 5px;
+  }
+</style>
+</head>
+
+<body onload="main();">
+<h2>Assignment 3: 3D Geometry</h2>
+  
+<div id="outer" style="text-align:center">
+<aside>
+<canvas id="webgl" width="500" height="500"/>
+</aside>
+</div>  
+<p>
+Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
+</p>
+<form>
+  <fieldset>
+    <legend>Global Options</legend>
+    <label for="wireframe">Draw wireframe</label>
+    <input type="checkbox" id="wireframe" checked>
+    <label for="fillobject">Fill object</label>
+    <input type="checkbox" id="fillobject" checked>
+    <br>
+    <label for="fieldOfViewAngleY">Field of view angle</label>
+    <input type="range" id="fieldOfViewAngleY" class="slider value ticks" interval="15" suffix="&deg;" min="0" max="90" step="1" value="45">
+    <!--    
+    <br>
+    <label for="fieldOfViewFront">Front position</label>
+    <input type="range" id="fieldOfViewFront" class="slider value ticks" interval="10" min="0" max="100" step="1" value="0">
+    <br>
+    <label for="fieldOfViewBack">Back position</label>
+    <input type="range" id="fieldOfViewBack" class="slider value ticks" interval="10" min="0" max="100" step="1" value="100">
+    -->
+    <br>
+    <input type="button" id="resetViewBtn" value="Reset view">
+    <input type="button" id="clearSceneBtn" value="Clear scene">
+    <input type="button" id="removeItemBtn" value="Remove current item">
+  </fieldset>
+  <br>
+  <fieldset>
+    <label>Current item: 
+      <select id="selectItem">
+      </select>
+    </label>
+  </fieldset>
+  <br>
+  <details>
+  <summary>Location, angle, and colour</summary>
+  <fieldset>
+    <legend>Location</legend>
+    <label for="locationX">X</label>
+    <input type="range" id="locationX" class="slider value ticks" interval="1" min="-4" max="4" step="0.1" value="0">
+    <br>
+    <label for="locationY">Y</label>
+    <input type="range" id="locationY" class="slider value ticks" interval="1" min="-4" max="4" step="0.1" value="0">
+    <br>
+    <label for="locationZ">Z</label>
+    <input type="range" id="locationZ" class="slider value ticks" interval="1" min="-9" max="9" step="0.1" value="0">
+  </fieldset>
+  <br>
+  <fieldset>
+    <legend>Angle</legend>
+    <label for="angleX">X</label>
+    <input type="range" id="angleX" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="angleY">Y</label>
+    <input type="range" id="angleY" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="angleZ">Z</label>
+    <input type="range" id="angleZ" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+  </fieldset>
+  <br/>
+  <fieldset>
+    <legend>Colour</legend>
+      <input type="range" id="fillColourSlider" min="0" max="80" step="1" value="80">
+      <input type="color" id="fillColour" value="#FF0000">
+  </fieldset>  
+  </details>
+
+  <details>
+    <summary>Add cone&hellip;</summary>
+    <fieldset>    
+      <label for="coneRadius">Radius</label>
+      <input type="range" id="coneRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="coneHeight">Height</label>
+      <input type="range" id="coneHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="coneSides">Sides</label>
+      <input type="range" id="coneSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <br>
+      <input type="button" id="addConeBtn" class="add-item-button" value="Add cone">
+    </fieldset>
+  </details>
+  
+  <details>
+    <summary>Add cube&hellip;</summary>
+    <fieldset>    
+      <label for="cubeWidth">Width</label>
+      <input type="range" id="cubeWidth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="cubeHeight">Height</label>
+      <input type="range" id="cubeHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="cubeDepth">Depth</label>
+      <input type="range" id="cubeDepth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <input type="button" id="addCubeBtn" class="add-item-button" value="Add cube">
+    </fieldset>
+  </details>
+  
+  <details>
+    <summary>Add cylinder&hellip;</summary>
+    <fieldset>    
+      <label for="cylinderRadius">Radius</label>
+      <input type="range" id="cylinderRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="cylinderHeight">Height</label>
+      <input type="range" id="cylinderHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="cylinderSides">Sides</label>
+      <input type="range" id="cylinderSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <br>
+      <input type="button" id="addCylinderBtn" class="add-item-button" value="Add cylinder">
+    </fieldset>
+  </details>
+  
+  <details>
+    <summary>Add ellipsoid&hellip;</summary>
+    <fieldset>    
+      <label for="ellipsoidWidth">Width</label>
+      <input type="range" id="ellipsoidWidth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="ellipsoidHeight">Height</label>
+      <input type="range" id="ellipsoidHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="ellipsoidDepth">Depth</label>
+      <input type="range" id="ellipsoidDepth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="ellipsoidSides">Sides</label>
+      <input type="range" id="ellipsoidSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <br>
+      <input type="button" id="addEllipsoidBtn" class="add-item-button" value="Add ellipsoid">
+    </fieldset>
+  </details>
+    
+  <details>
+    <summary>Add sphere&hellip;</summary>
+    <fieldset>    
+      <label for="sphereRadius">Radius</label>
+      <input type="range" id="sphereRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="sphereSides">Sides</label>
+      <input type="range" id="sphereSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <br>
+      <input type="button" id="addSphereBtn" class="add-item-button" value="Add sphere">
+    </fieldset>
+  </details>
+  
+    
+  <details>
+    <summary>Add tube&hellip;</summary>
+    <fieldset>    
+      <label for="tubeRadiusFront">Radius(front)</label>
+      <input type="range" id="tubeRadiusFront" interval="1" class="slider value ticks" min="0" max="10" step="0.1" value="0.5">
+      <br>
+      <label for="tubeRadiusBack">Radius(back)</label>
+      <input type="range" id="tubeRadiusBack" class="slider value ticks" interval="1"  min="0" max="10" step="0.1" value="0.25">
+      <br>
+      <label for="tubeHeight">Height</label>
+      <input type="range" id="tubeHeight" class="slider value ticks" interval="1"  min="0" max="10" step="0.1" value="1">
+      <br>
+      <label for="tubeSides">Sides</label>
+      <input type="range" id="tubeSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <br>
+      <label for="tubeCapFront">Front cap</label>
+      <input type="checkbox" id="tubeCapFront">
+      <label for="tubeCapBack">Back cap</label>
+      <input type="checkbox" id="tubeCapBack">
+      <br>
+      <input type="button" id="addTubeBtn" class="add-item-button" value="Add tube">
+    </fieldset>
+  </details>
+  
+</form>
+</body>
+<script type="text/javascript" src="sliders.js"></script>
+</html>
