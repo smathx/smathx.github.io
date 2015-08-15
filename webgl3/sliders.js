@@ -9,7 +9,7 @@ function initialiseSliders() {
 
     function aInt(attribute) {
       var a = element.getAttribute(attribute);
-      return a ? parseInt(a) : null;
+      return a ? parseInt(a, 10) : null;
     }
     
     if (element.classList.contains('ticks')) {
@@ -17,12 +17,12 @@ function initialiseSliders() {
       var min = aInt('min');
       var max = aInt('max');
 
-      if ((min != null) && (max != null)) {
+      if ((min !== null) && (max !== null)) {
 
         var step = aInt('step');
-        var interval = aInt('interval');
+        var interval = aInt('data-interval');
 
-        if (step == null)
+        if ((step === null) || (step < 1))
           step = 1;
 
         if (interval)
@@ -46,9 +46,9 @@ function initialiseSliders() {
 
       output.id = element.id + '-output';
       output.className = 'slider-output';
-      output.suffix = element.getAttribute('suffix');
+      output.suffix = element.getAttribute('data-suffix');
       
-      if (output.suffix == null)
+      if (output.suffix === null)
         output.suffix = '';
         
       output.value = element.value + output.suffix;
@@ -73,7 +73,7 @@ function updateSlider(slider, value) {
     
     slider.value = value;
     
-    if (output != null)
+    if (output !== null)
         output.value = slider.value + output.suffix;
 }
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
 
 <title>Assignment 3: 3D Geometry</title>
 
@@ -8,9 +9,10 @@
 <script type="text/javascript" src="webgl-utils.js"></script>
 <script type="text/javascript" src="MV.js"></script>
 
+<script type="text/javascript" src="control.js"></script>
 <script type="text/javascript" src="geometry.js"></script>
 <script type="text/javascript" src="shape.js"></script>
-<script type="text/javascript" src="control.js"></script>
+<script type="text/javascript" src="sliders.js"></script>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec3 aVertexPosition;
@@ -71,7 +73,13 @@ void main(void) {
   }
   label::after {
     content: ":"
-  }
+  } 
+  details > fieldset > label {
+    display: inline-block; 
+    float: left;
+    width: 100px;
+    text-align: right;
+  } 
   .slider {
     vertical-align: middle;
     width: 200px;
@@ -86,6 +94,10 @@ void main(void) {
   input[type=button] {
     margin: 5px;
   }
+  pre {
+    display: inline-block;
+    font-weight: bold;   
+}
 </style>
 </head>
 
@@ -94,7 +106,9 @@ void main(void) {
   
 <div id="outer" style="text-align:center">
 <aside>
-<canvas id="webgl" width="500" height="500"/>
+<canvas id="webgl" width="500" height="500">
+Your browser does not support the HTML5 <pre>&lt;canvas&gt;</pre> element.
+</canvas>
 </aside>
 </div>  
 <p>
@@ -109,19 +123,18 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <input type="checkbox" id="fillobject" checked>
     <br>
     <label for="fieldOfViewAngleY">Field of view angle</label>
-    <input type="range" id="fieldOfViewAngleY" class="slider value ticks" interval="15" suffix="&deg;" min="0" max="90" step="1" value="45">
+    <input type="range" id="fieldOfViewAngleY" class="slider value ticks" data-interval="15" data-suffix="&deg;" min="0" max="90" step="1" value="45">
     <!--    
     <br>
     <label for="fieldOfViewFront">Front position</label>
-    <input type="range" id="fieldOfViewFront" class="slider value ticks" interval="10" min="0" max="100" step="1" value="0">
+    <input type="range" id="fieldOfViewFront" class="slider value ticks" data-interval="10" min="0" max="100" step="1" value="0">
     <br>
     <label for="fieldOfViewBack">Back position</label>
-    <input type="range" id="fieldOfViewBack" class="slider value ticks" interval="10" min="0" max="100" step="1" value="100">
+    <input type="range" id="fieldOfViewBack" class="slider value ticks" data-interval="10" min="0" max="100" step="1" value="100">
     -->
     <br>
     <input type="button" id="resetViewBtn" value="Reset view">
     <input type="button" id="clearSceneBtn" value="Clear scene">
-    <input type="button" id="removeItemBtn" value="Remove current item">
   </fieldset>
   <br>
   <fieldset>
@@ -129,38 +142,37 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
       <select id="selectItem">
       </select>
     </label>
+    <input type="button" id="removeItemBtn" value="Remove current item">
   </fieldset>
   <br>
   <details>
-  <summary>Location, angle, and colour</summary>
+  <summary>Location, angle, and colour&hellip;</summary>
   <fieldset>
-    <legend>Location</legend>
-    <label for="locationX">X</label>
-    <input type="range" id="locationX" class="slider value ticks" interval="1" min="-4" max="4" step="0.1" value="0">
+    <label for="locationX">Location, X</label>
+    <input type="range" id="locationX" class="slider value ticks" data-interval="1" min="-4" max="4" step="0.1" value="0">
     <br>
     <label for="locationY">Y</label>
-    <input type="range" id="locationY" class="slider value ticks" interval="1" min="-4" max="4" step="0.1" value="0">
+    <input type="range" id="locationY" class="slider value ticks" data-interval="1" min="-4" max="4" step="0.1" value="0">
     <br>
     <label for="locationZ">Z</label>
-    <input type="range" id="locationZ" class="slider value ticks" interval="1" min="-9" max="9" step="0.1" value="0">
+    <input type="range" id="locationZ" class="slider value ticks" data-interval="1" min="-9" max="9" step="0.1" value="0">
   </fieldset>
   <br>
   <fieldset>
-    <legend>Angle</legend>
-    <label for="angleX">X</label>
-    <input type="range" id="angleX" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+    <label for="angleX">Angle, X</label>
+    <input type="range" id="angleX" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
     <br>
     <label for="angleY">Y</label>
-    <input type="range" id="angleY" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+    <input type="range" id="angleY" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
     <br>
     <label for="angleZ">Z</label>
-    <input type="range" id="angleZ" class="slider value ticks" interval="45" suffix="&deg;" min="0" max="360" step="1" value="0">
+    <input type="range" id="angleZ" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
   </fieldset>
-  <br/>
+  <br>
   <fieldset>
-    <legend>Colour</legend>
-      <input type="range" id="fillColourSlider" min="0" max="80" step="1" value="80">
-      <input type="color" id="fillColour" value="#FF0000">
+    <label for="fillColourSlider">Colour</label>
+    <input type="range" id="fillColourSlider" min="0" max="80" step="1" value="80">
+    <input type="color" id="fillColour" value="#FF0000">
   </fieldset>  
   </details>
 
@@ -168,10 +180,10 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <summary>Add cone&hellip;</summary>
     <fieldset>    
       <label for="coneRadius">Radius</label>
-      <input type="range" id="coneRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="coneRadius" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="coneHeight">Height</label>
-      <input type="range" id="coneHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="coneHeight" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <label for="coneSides">Sides</label>
       <input type="range" id="coneSides" class="slider value ticks" min="3" max="40" step="1" value="20">
@@ -184,13 +196,13 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <summary>Add cube&hellip;</summary>
     <fieldset>    
       <label for="cubeWidth">Width</label>
-      <input type="range" id="cubeWidth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="cubeWidth" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <label for="cubeHeight">Height</label>
-      <input type="range" id="cubeHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="cubeHeight" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <label for="cubeDepth">Depth</label>
-      <input type="range" id="cubeDepth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="cubeDepth" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <input type="button" id="addCubeBtn" class="add-item-button" value="Add cube">
     </fieldset>
@@ -200,10 +212,10 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <summary>Add cylinder&hellip;</summary>
     <fieldset>    
       <label for="cylinderRadius">Radius</label>
-      <input type="range" id="cylinderRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="cylinderRadius" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="cylinderHeight">Height</label>
-      <input type="range" id="cylinderHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="cylinderHeight" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <label for="cylinderSides">Sides</label>
       <input type="range" id="cylinderSides" class="slider value ticks" min="3" max="40" step="1" value="20">
@@ -216,13 +228,13 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <summary>Add ellipsoid&hellip;</summary>
     <fieldset>    
       <label for="ellipsoidWidth">Width</label>
-      <input type="range" id="ellipsoidWidth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="ellipsoidWidth" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="ellipsoidHeight">Height</label>
-      <input type="range" id="ellipsoidHeight" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="ellipsoidHeight" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="1">
       <br>
       <label for="ellipsoidDepth">Depth</label>
-      <input type="range" id="ellipsoidDepth" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="ellipsoidDepth" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="ellipsoidSides">Sides</label>
       <input type="range" id="ellipsoidSides" class="slider value ticks" min="3" max="40" step="1" value="20">
@@ -235,33 +247,33 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <summary>Add sphere&hellip;</summary>
     <fieldset>    
       <label for="sphereRadius">Radius</label>
-      <input type="range" id="sphereRadius" class="slider value ticks" interval="1" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="sphereRadius" class="slider value ticks" data-interval="1" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="sphereSides">Sides</label>
-      <input type="range" id="sphereSides" class="slider value ticks" min="3" max="40" step="1" value="20">
+      <input type="range" id="sphereSides" class="slider value ticks" min="2" max="40" step="1" value="20">
       <br>
       <input type="button" id="addSphereBtn" class="add-item-button" value="Add sphere">
     </fieldset>
   </details>
-  
     
   <details>
     <summary>Add tube&hellip;</summary>
     <fieldset>    
       <label for="tubeRadiusFront">Radius(front)</label>
-      <input type="range" id="tubeRadiusFront" interval="1" class="slider value ticks" min="0" max="10" step="0.1" value="0.5">
+      <input type="range" id="tubeRadiusFront" data-interval="1" class="slider value ticks" min="0" max="10" step="0.1" value="0.5">
       <br>
       <label for="tubeRadiusBack">Radius(back)</label>
-      <input type="range" id="tubeRadiusBack" class="slider value ticks" interval="1"  min="0" max="10" step="0.1" value="0.25">
+      <input type="range" id="tubeRadiusBack" class="slider value ticks" data-interval="1"  min="0" max="10" step="0.1" value="0.25">
       <br>
       <label for="tubeHeight">Height</label>
-      <input type="range" id="tubeHeight" class="slider value ticks" interval="1"  min="0" max="10" step="0.1" value="1">
+      <input type="range" id="tubeHeight" class="slider value ticks" data-interval="1"  min="0" max="10" step="0.1" value="1">
       <br>
       <label for="tubeSides">Sides</label>
       <input type="range" id="tubeSides" class="slider value ticks" min="3" max="40" step="1" value="20">
       <br>
       <label for="tubeCapFront">Front cap</label>
       <input type="checkbox" id="tubeCapFront">
+      <br>
       <label for="tubeCapBack">Back cap</label>
       <input type="checkbox" id="tubeCapBack">
       <br>
@@ -271,5 +283,4 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
   
 </form>
 </body>
-<script type="text/javascript" src="sliders.js"></script>
 </html>

@@ -117,7 +117,7 @@ function drawScene() {
         
         var shape = shapeInstances[i];
         
-        if (shape == null)
+        if (shape === null)
             continue;
         
         mvPushMatrix();
@@ -178,7 +178,7 @@ function initialiseWebGL() {
 
     canvas = document.getElementById('webgl');
 
-    if ((gl = WebGLUtils.setupWebGL(canvas)) == null) {
+    if ((gl = WebGLUtils.setupWebGL(canvas)) === null) {
         alert('WebGL is not available!');
         return false;
     }
