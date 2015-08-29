@@ -118,7 +118,7 @@ function main() {
   
   function setViewControls() {
       updateSlider(control.eyeDistance, view.distance);
-      updateSlider(control.eyeTheta, view.theta);
+      updateSlider(control.eyeTheta, 90 - view.theta);
       updateSlider(control.eyePhi, view.phi);
   }
 
