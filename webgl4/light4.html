@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Assignment 4: Light</title>
+
+<link rel="stylesheet" type="text/css" href="light4.css">
+
+<script src="initShaders.js"></script>
+<script src="mv.js"></script>
+<script src="webgl-utils.js"></script>
+<script src="shapes.js"></script>
+<script src="slider.js"></script>
+<script src="light4.js"></script>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec3 a_position;
+attribute vec3 a_normal;
+
+uniform mat4 u_modelView;
+uniform mat4 u_projection;
+uniform mat4 u_view;
+
+uniform vec4 u_ambientProduct1;
+uniform vec4 u_diffuseProduct1;
+uniform vec4 u_specularProduct1;
+uniform vec4 u_lightPosition1;
+uniform float u_shininess1;
+
+uniform vec4 u_ambientProduct2;
+uniform vec4 u_diffuseProduct2;
+uniform vec4 u_specularProduct2;
+uniform vec4 u_lightPosition2;
+uniform float u_shininess2;
+
+varying vec4 v_colour;
+
+void main() {
+    vec3 pos = (u_modelView * vec4(a_position, 1.0)).xyz;
+
+// ???? duplicate until work out arrays    
+    // Fixed light position
+    vec3 light = (u_view * u_lightPosition1).xyz;
+    vec3 L = normalize(light - pos);
+	
+    vec3 E = normalize(-pos);
+    vec3 H = normalize(L + E);
+    
+    vec4 NN = vec4(a_normal,0);
+
+    // Transform vertex normal into eye coordinates
+    vec3 N = normalize((u_modelView * NN).xyz);
+
+    // Compute terms in the illumination equation
+    vec4 ambient = u_ambientProduct1;
+
+    float Kd = max(dot(L, N), 0.0);
+    vec4 diffuse = Kd * u_diffuseProduct1;
+
+    float Ks = pow(max(dot(N, H), 0.0), u_shininess1);
+    vec4 specular = Ks * u_specularProduct1;
+    
+    if (dot(L, N) < 0.0)
+        specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+    v_colour = ambient + diffuse + specular;    
+
+// ???? ugly - duplicate for now
+    light = (u_view * u_lightPosition2).xyz;
+    L = normalize(light - pos);
+	
+    E = normalize(-pos);
+    H = normalize(L + E);
+    
+    NN = vec4(a_normal,0);
+
+    // Transform vertex normal into eye coordinates
+    N = normalize((u_modelView * NN).xyz);
+
+    // Compute terms in the illumination equation
+    ambient = u_ambientProduct2;
+
+    Kd = max(dot(L, N), 0.0);
+    diffuse = Kd * u_diffuseProduct2;
+
+    Ks = pow(max(dot(N, H), 0.0), u_shininess1);
+    specular = Ks * u_specularProduct2;
+    
+    if (dot(L, N) < 0.0)
+        specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+    v_colour += ambient + diffuse + specular;    
+    
+    v_colour.r = min(v_colour.r, 1.0);
+    v_colour.g = min(v_colour.g, 1.0);
+    v_colour.b = min(v_colour.b, 1.0);
+    
+    v_colour.a = 1.0;
+
+    gl_Position = u_projection * u_modelView * vec4(a_position, 1.0);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec4 v_colour;
+
+void main() {
+   gl_FragColor = v_colour;
+}
+</script>
+</head>
+
+<body>
+  <h2>Assignment 4: Light</h2>
+<p>
+Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
+</p>
+
+  <canvas id="webgl" width="500" height="400">
+    Your browser does not support the HTML5 <pre>&lt;canvas&gt;</pre> element.
+  </canvas>
+  <br>
+  <fieldset>
+    <legend>Options</legend>
+    <div class="options">
+    <label for="gridPlane">Grid:</label>
+    <input type="checkbox" id="gridPlane">
+    <label for="animate">Animate:</label>
+    <input type="checkbox" id="animate">
+    <br>
+    <label for="eyeDistance">Eye distance:</label>
+    <input type="range" id="eyeDistance" class="slider value ticks" data-interval="100" min="0" max="1000" step="1" value="500">
+    <br>
+    <label for="eyeTheta">Elevation, &theta;:</label>
+    <input type="range" id="eyeTheta" class="slider value ticks" data-interval="15" data-suffix="&deg;" min="-90" max="89.9" step="1" value="30">
+    <br>
+    <label for="eyePhi">Azimuth, &phi;:</label>
+    <input type="range" id="eyePhi" class="slider value ticks" data-interval="15" data-suffix="&deg;" min="-180" max="180" step="1" value="45">
+    <br>
+    <input type="button" id="resetViewBtn" value="Reset view">
+    </div>
+  </fieldset>  
+  <br>
+<!--    
+    <label for="locationX">Location, X:</label>
+    <input type="range" id="locationX" class="slider value ticks" data-interval="100" min="-400" max="400" step="1" value="0">
+    <br>
+    <label for="locationY">Location, Y:</label>
+    <input type="range" id="locationY" class="slider value ticks" data-interval="100" min="-400" max="400" step="1" value="0">
+    <br>
+    <label for="locationZ">Location, Z:</label>
+    <input type="range" id="locationZ" class="slider value ticks" data-interval="100" min="-400" max="400" step="1" value="0">
+    <br>
+    <label for="angleX">Angle, X:</label>
+    <input type="range" id="angleX" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="angleY">Angle, Y:</label>
+    <input type="range" id="angleY" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="angleZ">Angle, Z:</label>
+    <input type="range" id="angleZ" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="scaleX">Scale, X:</label>
+    <input type="range" id="scaleX" class="slider value ticks" data-interval="1" min="-10" max="10" step="0.1" value="1">
+    <br>
+    <label for="scaleY">Scale, Y:</label>
+    <input type="range" id="scaleY" class="slider value ticks" data-interval="1" min="-10" max="10" step="0.1" value="1">
+    <br>
+    <label for="scaleZ">Scale, Z:</label>
+    <input type="range" id="scaleZ" class="slider value ticks" data-interval="1" min="-10" max="10" step="0.1" value="1">
+    <br>
+-->    
+  <fieldset>
+    <legend>Light 1</legend>
+    <label for="light1Switch">On:</label>
+    <input type="checkbox" id="light1Switch" checked>    
+    <br>
+    <label for="light1PositionX">Position, X</label>
+    <input type="range" id="light1PositionX" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="500">
+    <br>
+    <label for="light1PositionY">Y</label>
+    <input type="range" id="light1PositionY" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="500">
+    <br>
+    <label for="light1PositionZ">Z</label>
+    <input type="range" id="light1PositionZ" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="500">
+    <br>
+    <div class="colour-buttons">
+      <label for="light1Ambient">Ambient:</label>
+      <input type="color" id="light1Ambient" value="#606060">
+      <label for="light1Diffuse">Diffuse:</label>
+      <input type="color" id="light1Diffuse" value="#ff0000">
+      <label for="light1Specular">Specular:</label>
+      <input type="color" id="light1Specular" value="#ffffff">
+    </div>
+  </fieldset>
+  <br>
+  <fieldset>
+    <legend>Light 2</legend>
+    <label for="light2Switch">On:</label>
+    <input type="checkbox" id="light2Switch" checked>    
+    <br>
+    <label for="light2PositionX">Position, X</label>
+    <input type="range" id="light2PositionX" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="500">
+    <br>
+    <label for="light2PositionY">Y</label>
+    <input type="range" id="light2PositionY" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="500">
+    <br>
+    <label for="light2PositionZ">Z</label>
+    <input type="range" id="light2PositionZ" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="-500">
+    <br>
+    <div class="colour-buttons">
+      <label for="light2Ambient">Ambient:</label>
+      <input type="color" id="light2Ambient" value="#606060">
+      <label for="light2Diffuse">Diffuse:</label>
+      <input type="color" id="light2Diffuse" value="#00ff00">
+      <label for="light2Specular">Specular:</label>
+      <input type="color" id="light2Specular" value="#ffffff">
+    </div>
+  </fieldset>
+  </br>
+  <fieldset>
+    <legend>Material properties</legend>
+    <div class="colour-buttons">
+      <label>Shape:</label>
+      <div class="shape">Sphere</div>
+      <div class="shape">Cylinder</div>
+      <div class="shape">Cube</div>
+      <div class="shape">Cone</div>
+      <br>
+      <label for="materialAmbient">Ambient:</label>
+      <input type="color" id="materialAmbient1" value="#000000">
+      <input type="color" id="materialAmbient2" value="#7f0000">
+      <input type="color" id="materialAmbient3" value="#007f00">
+      <input type="color" id="materialAmbient4" value="#0000ff">
+      <br>
+      <label for="materialDiffuse">Diffuse:</label>
+      <input type="color" id="materialDiffuse1" value="#ffffff">
+      <input type="color" id="materialDiffuse2" value="#ff0000">
+      <input type="color" id="materialDiffuse3" value="#00ff00">
+      <input type="color" id="materialDiffuse4" value="#00ffff">
+      <br>
+      <label for="materialSpecular">Specular</label>
+      <input type="color" id="materialSpecular1" value="#ffffff">
+      <input type="color" id="materialSpecular2" value="#ffffff">
+      <input type="color" id="materialSpecular3" value="#ffffff">
+      <input type="color" id="materialSpecular4" value="#ffffff">
+      <br>
+      <label for="materialShininess">Shininess:</label>
+      <input type="number" id="materialShininess1" min="1" max="200" step="1" value="60">
+      <input type="number" id="materialShininess2" min="1" max="200" step="1" value="60">
+      <input type="number" id="materialShininess3" min="1" max="200" step="1" value="60">
+      <input type="number" id="materialShininess4" min="1" max="200" step="1" value="60">
+    </div>
+  </fieldset>
+</body>
+</html>
