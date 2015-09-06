@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Assignment 5: Textures</title>
+
+<link rel="stylesheet" type="text/css" href="texture5.css">
+
+<script src="initShaders.js"></script>
+<script src="mv.js"></script>
+<script src="webgl-utils.js"></script>
+<script src="shapes.js"></script>
+<script src="slider.js"></script>
+<script src="texture5.js"></script>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+// BUG if the bool is defined first only the first component of the vectors 
+// will be non-zero.
+
+const int NUM_LIGHTS = 1;
+
+struct lightPropertiesX {
+    vec4    ambient;
+    vec4    diffuse;
+    vec4    specular;
+    vec4    position;
+    bool    enabled; 
+};
+
+struct materialProperties {
+    vec4    ambient;
+    vec4    diffuse;
+    vec4    specular;
+    float   shininess;
+};
+
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec2 a_texCoord;
+
+uniform mat4 u_modelView;
+uniform mat4 u_projection;
+uniform mat4 u_view;
+
+uniform bool u_grid;
+uniform vec4 u_gridColour;
+
+uniform lightPropertiesX u_lights[NUM_LIGHTS];
+uniform materialProperties u_material;
+
+varying vec4 v_colour;
+varying vec2 v_texCoord;
+
+void main() {
+    v_colour = vec4(0, 0, 0, 0);
+
+    for (int i = 0; i < NUM_LIGHTS; ++i) {
+      if (u_lights[i].enabled) {
+        vec3 pos = (u_modelView * vec4(a_position, 1.0)).xyz;
+        vec3 light = (u_view * u_lights[i].position).xyz;
+        vec3 L = normalize(light - pos);
+	
+        vec3 E = normalize(-pos);
+        vec3 H = normalize(L + E);
+    
+        vec4 NN = vec4(a_normal,0);
+
+        // Transform vertex normal into eye coordinates
+        vec3 N = normalize((u_modelView * NN).xyz);
+
+        // Compute terms in the illumination equation
+        vec4 ambient = u_lights[i].ambient * u_material.ambient;
+
+        float Kd = max(dot(L, N), 0.0);
+        vec4 diffuse = Kd * u_lights[i].diffuse * u_material.diffuse;
+
+        float Ks = pow(max(dot(N, H), 0.0), u_material.shininess);
+        vec4 specular = Ks * u_lights[i].specular * u_material.specular;
+    
+        if (dot(L, N) < 0.0)
+            specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+        v_colour += ambient + diffuse + specular;    
+      }
+    }
+        
+    v_colour.r = min(v_colour.r, 1.0);
+    v_colour.g = min(v_colour.g, 1.0);
+    v_colour.b = min(v_colour.b, 1.0);    
+    v_colour.a = 1.0;
+
+    //v_colour = vec4(0.5,0.5,0.5,1); //u_gridColour;
+    
+    if (u_grid)
+      v_colour = u_gridColour;
+
+    v_texCoord = a_texCoord;  
+    gl_Position = u_projection * u_modelView * vec4(a_position, 1.0);
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec4 v_colour;
+varying vec2 v_texCoord;
+
+uniform bool u_grid;
+uniform sampler2D texture;
+
+void main() {
+    gl_FragColor = u_grid ? v_colour: v_colour * texture2D(texture, v_texCoord);
+}
+</script>
+</head>
+
+<body>
+  <h2>Assignment 5: Textures</h2>
+<p>
+Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
+</p>
+
+  <canvas id="webgl" width="600" height="600">
+    Your browser does not support the HTML5 <pre>&lt;canvas&gt;</pre> element.
+  </canvas>
+  <br>
+  <fieldset>
+    <legend>Textures</legend>
+    <label for="option">Option:</label>
+    <select id="selectTexture">
+      <option value="0">Earth</option>
+      <option value="1">Moon</option>
+      <option value="2" selected>Mars</option>
+      <option value="3">Jupiter</option>
+      <option value="4">Pluto</option>
+      <option value="5">Chequer board</option>
+    </select>
+    <br>
+    <label for="animate">Animate:</label>
+    <input type="checkbox" id="animate" checked>
+  </fieldset>
+  <br>
+  <fieldset>
+    <legend>View</legend>
+    <div class="options">
+    <label for="gridPlane">Grid:</label>
+    <input type="checkbox" id="gridPlane">
+    <br>
+    <label for="eyeDistance">Eye distance:</label>
+    <input type="range" id="eyeDistance" class="slider value ticks" data-interval="100" min="0" max="1000" step="1" value="500">
+    <br>
+    <label for="eyeTheta">Elevation, &theta;:</label>
+    <input type="range" id="eyeTheta" class="slider value ticks" data-interval="15" data-suffix="&deg;" min="-90" max="89.9" step="1" value="30">
+    <br>
+    <label for="eyePhi">Azimuth, &phi;:</label>
+    <input type="range" id="eyePhi" class="slider value ticks" data-interval="15" data-suffix="&deg;" min="-180" max="180" step="1" value="45">
+    <br>
+    <input type="button" id="resetViewBtn" value="Reset view">
+    </div>
+  </fieldset>  
+  <br>
+  <fieldset>
+    <legend>Lighting</legend>
+    <label for="light1Animate">Animate:</label>
+    <input type="checkbox" id="light1Animate">
+    <br>
+    <label for="light1PositionX">Position, X</label>
+    <input type="range" id="light1PositionX" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="0">
+    <br>
+    <label for="light1PositionY">Y</label>
+    <input type="range" id="light1PositionY" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="0">
+    <br>
+    <label for="light1PositionZ">Z</label>
+    <input type="range" id="light1PositionZ" class="slider value ticks" data-interval="100" min="-1000" max="1000" step="1" value="1000">
+    <br>
+    <div class="colour-buttons">
+      <label for="light1Ambient">Ambient:</label>
+      <input type="color" id="light1Ambient" value="#404040">
+      <label for="light1Diffuse">Diffuse:</label>
+      <input type="color" id="light1Diffuse" value="#ffffff">
+      <label for="light1Specular">Specular:</label>
+      <input type="color" id="light1Specular" value="#ffffff">
+    </div>
+  </fieldset>
+  <br>
+  <p>Frame rate: <span id="frameRate"></span> frames per second.</p>
+  <footer>
+  <p>Earth image from <a href="http://www.shadedrelief.com/natural3/pages/textures.html">Natural Earth III</a>.
+  <p>Lunar image from <a href="http://laps.noaa.gov/albers/sos/sos.html">Planetary Maps</a>.
+  <p>Mars image from <a href="https://commons.wikimedia.org/wiki/File:Mars_Viking_MDIM21_ClrMosaic_1km.jpg">Wikimedia Commons</a>.
+  <p>Jupiter image from <a href="http://photojournal.jpl.nasa.gov/catalog/PIA07782">JPL Photojournal</a>.
+  <p>Pluto image from <a href="http://pluto.jhuapl.edu/Multimedia/Science-Photos/image.php?page=&gallery_id=2&image_id=252">New Horizons</a>.
+  </footer>
+</body>
+</html>

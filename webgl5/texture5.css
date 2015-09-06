@@ -1,0 +1,65 @@
+canvas {
+    border: 1px solid black;
+    margin: 0 auto;
+    float: right;
+    margin: 10px;
+}
+
+h2 {
+    text-align: center;
+}
+
+label, body {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 12px;
+}
+
+label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+
+.colour-buttons > label {
+    width: 60px;
+    padding-top: 10px;
+}
+
+.colour-buttons > input[type=number] {
+    width: 46px;
+}
+
+.shape {
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+fieldset {
+    display: inline-block;
+    padding: 5px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+input[type=checkbox] {
+    margin-bottom: 10px;
+}
+
+.slider {
+    vertical-align: middle;
+    width: 200px;
+}
+
+.slider-output {
+    border: 1px solid black;
+    padding: 4px;
+    width: 30px;
+    margin-left: 10px;
+    font-size: .9em;
+}
+
+* {
+    -webkit-user-select: none;
+}
