@@ -16,10 +16,11 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
-// BUG if the bool is defined first only the first component of the vectors 
-// will be non-zero.
-
+const float PI = 3.14159265359;
 const int NUM_LIGHTS = 1;
+
+// BUG: If the bool is defined first only the first component of the vectors 
+// will be non-zero.
 
 struct lightPropertiesX {
     vec4    ambient;
@@ -47,6 +48,8 @@ uniform mat4 u_view;
 uniform bool u_grid;
 uniform vec4 u_gridColour;
 
+uniform int u_mapType;
+
 uniform lightPropertiesX u_lights[NUM_LIGHTS];
 uniform materialProperties u_material;
 
@@ -54,7 +57,13 @@ varying vec4 v_colour;
 varying vec2 v_texCoord;
 
 void main() {
-    v_colour = vec4(0, 0, 0, 0);
+    if (u_grid) {
+      v_colour = u_gridColour;
+      gl_Position = u_projection * u_modelView * vec4(a_position, 1.0);
+      return;
+    }
+    
+    v_colour = vec4(0.0);
 
     for (int i = 0; i < NUM_LIGHTS; ++i) {
       if (u_lights[i].enabled) {
@@ -91,12 +100,28 @@ void main() {
     v_colour.b = min(v_colour.b, 1.0);    
     v_colour.a = 1.0;
 
-    //v_colour = vec4(0.5,0.5,0.5,1); //u_gridColour;
-    
-    if (u_grid)
-      v_colour = u_gridColour;
+    if (u_mapType == 1) {
+      // cylindrical mapping
 
-    v_texCoord = a_texCoord;  
+      float theta = (a_texCoord.y - 0.5) * PI;
+      
+      v_texCoord.x = a_texCoord.x;
+      v_texCoord.y = 0.5 * (1.0 + sin(theta));  
+    } 
+    else if (u_mapType == 2) {
+      // planar mapping - ???? check this
+      
+      float theta = (a_texCoord.y - 0.5) * PI;
+      float phi = (2.0 * a_texCoord.x - 1.0) * PI;
+      
+      v_texCoord.x = 0.5 * (1.0 + cos(theta) * sin(phi));  
+      v_texCoord.y = 0.5 * (1.0 + sin(theta));  
+    }
+    else {  
+      // spherical mapping
+      v_texCoord = a_texCoord;
+    }
+    
     gl_Position = u_projection * u_modelView * vec4(a_position, 1.0);
 }
 </script>
@@ -111,7 +136,10 @@ uniform bool u_grid;
 uniform sampler2D texture;
 
 void main() {
-    gl_FragColor = u_grid ? v_colour: v_colour * texture2D(texture, v_texCoord);
+    if (u_grid)
+      gl_FragColor = v_colour;
+    else  
+      gl_FragColor = v_colour * texture2D(texture, v_texCoord);
 }
 </script>
 </head>
@@ -128,25 +156,34 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
   <br>
   <fieldset>
     <legend>Textures</legend>
-    <label for="option">Option:</label>
+    <label for="selectTexture">Option:</label>
     <select id="selectTexture">
-      <option value="0">Earth</option>
-      <option value="1">Moon</option>
-      <option value="2" selected>Mars</option>
-      <option value="3">Jupiter</option>
-      <option value="4">Pluto</option>
-      <option value="5">Chequer board</option>
+      <option value="0">Earth (image)</option>
+      <option value="1">Moon (image)</option>
+      <option value="2">Mars (image)</option>
+      <option value="3">Jupiter (image)</option>
+      <option value="4">Pluto (image)</option>
+      <option value="8" selected>Chequerboard (pattern)</option>
+      <option value="5">Brick (image)</option>
+      <option value="6">Wood (image)</option>
+      <option value="7">Honeycomb (image)</option>
     </select>
     <br>
-    <label for="animate">Animate:</label>
-    <input type="checkbox" id="animate" checked>
+    <label for="selectMapType">Map:</label>
+    <select id="selectMapType">
+      <option value="0">Spherical</option>
+      <option value="1">Polar</option>
+      <option value="2">Planar</option>
+    </select>  
   </fieldset>
   <br>
   <fieldset>
     <legend>View</legend>
     <div class="options">
-    <label for="gridPlane">Grid:</label>
-    <input type="checkbox" id="gridPlane">
+    <label for="perspectiveView">Perspective:</label>
+    <input type="radio" name="perspectiveGroup" id="perspectiveView">
+    <label for="orthonormalView">Orthonormal:</label>
+    <input type="radio" name="perspectiveGroup" id="orthonormalView">
     <br>
     <label for="eyeDistance">Eye distance:</label>
     <input type="range" id="eyeDistance" class="slider value ticks" data-interval="100" min="0" max="1000" step="1" value="500">
@@ -160,6 +197,21 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
     <input type="button" id="resetViewBtn" value="Reset view">
     </div>
   </fieldset>  
+  <br>
+  <fieldset>
+    <legend>Rotation</legend>
+    <label for="animate">Animate:</label>
+    <input type="checkbox" id="animate">
+    <br>
+    <label for="angleX">X axis:</label>
+    <input type="range" id="angleX" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
+    <br>
+    <label for="angleY">Y axis:</label>
+    <input type="range" id="angleY" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="270">
+    <br>
+    <label for="angleZ">Z axis:</label>
+    <input type="range" id="angleZ" class="slider value ticks" data-interval="45" data-suffix="&deg;" min="0" max="360" step="1" value="0">
+  </fieldset>
   <br>
   <fieldset>
     <legend>Lighting</legend>
@@ -187,11 +239,13 @@ Drag the mouse to rotate the view. Use the mouse wheel to zoom in and out.
   <br>
   <p>Frame rate: <span id="frameRate"></span> frames per second.</p>
   <footer>
-  <p>Earth image from <a href="http://www.shadedrelief.com/natural3/pages/textures.html">Natural Earth III</a>.
-  <p>Lunar image from <a href="http://laps.noaa.gov/albers/sos/sos.html">Planetary Maps</a>.
-  <p>Mars image from <a href="https://commons.wikimedia.org/wiki/File:Mars_Viking_MDIM21_ClrMosaic_1km.jpg">Wikimedia Commons</a>.
-  <p>Jupiter image from <a href="http://photojournal.jpl.nasa.gov/catalog/PIA07782">JPL Photojournal</a>.
-  <p>Pluto image from <a href="http://pluto.jhuapl.edu/Multimedia/Science-Photos/image.php?page=&gallery_id=2&image_id=252">New Horizons</a>.
+  <p>Image Credits: 
+  Earth: <a href="http://www.shadedrelief.com/natural3/pages/textures.html">Natural Earth III</a>;
+  Moon: <a href="http://laps.noaa.gov/albers/sos/sos.html">Planetary Maps</a>;
+  Mars, brick, wood, and honeycomb: <a href="https://commons.wikimedia.org">Wikimedia Commons</a>;
+  Jupiter: <a href="http://photojournal.jpl.nasa.gov/catalog/PIA07782">JPL Photojournal</a>;
+  Pluto: <a href="http://pluto.jhuapl.edu/Multimedia/Science-Photos/image.php?page=&gallery_id=2&image_id=252">New Horizons</a>.
+  </p>
   </footer>
 </body>
 </html>

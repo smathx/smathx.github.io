@@ -3,7 +3,6 @@
 var gl;
 
 function main() {
-  var xxx = 0;
   var canvas;
 
   var control = [];
@@ -16,7 +15,7 @@ function main() {
   var animate = false;
 
   initialiseSliders();
-  initialiseOptionControls();
+  initialiseViewControls();
   initialisePerspectiveControls();
   initialiseLightingControls();
   initialiseMaterialControls();
@@ -48,6 +47,7 @@ function main() {
   var u_view = gl.getUniformLocation(program, 'u_view');
   var u_grid = gl.getUniformLocation(program, 'u_grid');
   var u_gridColour = gl.getUniformLocation(program, 'u_gridColour');
+  var u_mapType = gl.getUniformLocation(program, 'u_mapType');
 
   var u_material = {
     ambient:    gl.getUniformLocation(program, 'u_material.ambient'),
@@ -72,13 +72,13 @@ function main() {
   //createItem(createCylinder(50, 100), [-100, 0,  100], materials[1]);
   //createItem(createCube(100),         [-100, 0, -100], materials[2]);
   //createItem(createCone(50, 100),     [ 100, 0, -100], materials[3]);
+  
+  initialiseAngleControls();
 
   var grid = createGrid(-500, 500, 50);
   var gridPlane = false;
-
-  var translation = [ 0, 0, 0 ];
-  var rotation = [ 0, 0, 0 ];
-  var scale = [ 1, 1, 1 ];
+  
+  var mapType = 0;
 
   setView();
   tick();
@@ -110,8 +110,12 @@ function main() {
                     'moon.png',
                     'mars.png',
                     'jupiter.png',
-                    'pluto.png'
+                    'pluto.png',
+                    'brick.png',
+                    'wood.png',
+                    'honeycomb.png'
                    ];
+
     textures.forEach(function (file) { loadTextureImage(file); });
     
     control.selectTexture = document.getElementById('selectTexture');
@@ -120,13 +124,14 @@ function main() {
     }
     control.selectTexture.onchange();
     
-    //control.cycleTexturesE = document.getElementById('cycleTextures');
-    //control.cycleTexturesE.onclick = function () {
-    //    control.cycleTextures = control.cycleTexturesE.checked;
-    //}
-    //control.cycleTexturesE.onclick();
+    control.selectMapType = document.getElementById('selectMapType');
+    control.selectMapType.onchange = function () {
+        mapType = Number(control.selectMapType.value);
+    }
+    //control.selectMapType.onchange();
     
-    images.push({ texture: createTexture('#ff0000', '#ffffff') });
+    // chequerboard pattern, red on white
+    images.push({ texture: createTexture('#ff0000', '#ffffff') });                   
   }
 
   function loadTextureImage(file) {
@@ -153,18 +158,22 @@ function main() {
     images.push(image);
   }
 
-  function initialiseOptionControls() {
-    var gridPlaneE = document.getElementById('gridPlane');
+  function initialiseViewControls() {
+ /*   var gridPlaneE = document.getElementById('gridPlane');
     gridPlaneE.onclick = function () {
         gridPlane = gridPlaneE.checked;
     };
-
-    var animateE = document.getElementById('animate');
-    animateE.onclick = function () {
-        animate = animateE.checked;
-    };
-    animateE.onclick();
-
+*/
+    control.perspectiveViewE = document.getElementById('perspectiveView');
+    control.perspectiveViewE.onclick = function () {
+        view.perspective = true;
+    }
+    
+    var orthonormalViewE = document.getElementById('orthonormalView');
+    orthonormalViewE.onclick = function () {
+        view.perspective = false;
+    }
+    
     control.eyeDistance = document.getElementById('eyeDistance');
     control.eyeDistance.oninput = function () {
         view.distance = Number(control.eyeDistance.value);
@@ -188,6 +197,7 @@ function main() {
   }
 
   function setViewControls() {
+      control.perspectiveViewE.checked = view.perspective;
       updateSlider(control.eyeDistance, view.distance);
       updateSlider(control.eyeTheta, 90 - view.theta);
       updateSlider(control.eyePhi, view.phi);
@@ -197,6 +207,54 @@ function main() {
     view.fieldOfView = 45;
     view.nearLimit = 1;
     view.farLimit = 1000;
+  }
+
+  function initialiseAngleControls() {
+    function updateRotation(index, ui) {
+      if (items.length > 0)
+        items[0].rotation[index] = Number(ui.value);
+    }
+
+    var animateE = document.getElementById('animate');
+    animateE.onclick = function () {
+        animate = animateE.checked;
+    };
+    animateE.onclick();
+
+    control.angleX = document.getElementById('angleX');
+    control.angleX.oninput = function () {
+        updateRotation(0, angleX);
+    };
+    control.angleX.oninput();
+    
+    control.angleY = document.getElementById('angleY');
+    control.angleY.oninput = function () {
+        updateRotation(1, angleY);
+    };
+    control.angleY.oninput();
+    
+    control.angleZ = document.getElementById('angleZ');
+    control.angleZ.oninput = function () {
+        updateRotation(2, angleZ);
+    };
+    control.angleZ.oninput();
+    setAngleControls();
+  }
+
+  function setAngleControls() {
+      function setAngle(angle) {
+          if (angle > 360)
+              angle = angle % 360;
+          else if (angle < 0)
+              angle = 360 + angle % 360;
+          return angle;
+      }
+      
+      if (items.length > 0) {
+        updateSlider(control.angleX, setAngle(items[0].rotation[0]));
+        updateSlider(control.angleY, setAngle(items[0].rotation[1]));
+        updateSlider(control.angleZ, setAngle(items[0].rotation[2]));
+      }
   }
 
   function getColour(value) {
@@ -292,9 +350,6 @@ function main() {
   }
 
   function updateMaterial() {
-    //items.forEach(function(item) {
-    //    item.material = material;
-    //});
   }
 
   function initialiseMaterialControls() {
@@ -358,6 +413,7 @@ function main() {
     view.theta = 90;
     view.phi = 0;
     view.distance = 200;
+    view.perspective = true;
     view.fieldOfView = 45;
     view.nearLimit = 1;
     view.farLimit = 1000;
@@ -404,7 +460,7 @@ function main() {
             image[index++] = 255;
         }
     }
-   // console.log(image);
+    console.log(image);
     return image;
   }
 */
@@ -420,12 +476,12 @@ function main() {
 
     context.fillStyle = colour2;
  
-    var step = canvas.width / 16;
+    var step = canvas.height / 8;
  
-    for (var i = 0; i < canvas.height; i += 2 * step) {
-      for (var j = 0; j < canvas.width; j += 2 * step) {
-        context.fillRect( i,  j, step, step);
-        context.fillRect( i+step, j+step, step, step);
+    for (var j = 0; j < canvas.height; j += 2 * step) {
+      for (var i = 0; i < canvas.width; i += step) {
+        context.fillRect( i,  j, step / 2, step);
+        context.fillRect( i+step/2, j+step, step/2, step);
       }
     }
     
@@ -441,50 +497,22 @@ function main() {
 
     return texture;
   }
-/*
-function configureTexture(image, size) {
-    var texture = gl.createTexture();
-    gl.activeTexture( gl.TEXTURE0 );
-    gl.bindTexture( gl.TEXTURE_2D, texture );
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0,
-        gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap( gl.TEXTURE_2D );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
-        gl.NEAREST_MIPMAP_LINEAR );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-}
-
- function initTextures() {
-  cubeTexture = gl.createTexture();
-  cubeImage = new Image();
-  cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
-  cubeImage.src = 'earth.png';//'moon.gif'; //'cubetexture.png'; // 'clipart-smiley-face1.png';
-}
-
-function handleTextureLoaded(image, texture) {
-  console.log("handleTextureLoaded, image = " + image);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-        gl.UNSIGNED_BYTE, image);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-}
-*/
- function drawScene() {
+  
+  function drawScene() {
     if (!gl)
         return;
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var matrix;
+    var projectionMatrix;
     var aspectRatio = canvas.clientWidth / canvas.clientHeight;
 
-    var projectionMatrix = perspective(view.fieldOfView, aspectRatio,
-                                       view.nearLimit, view.farLimit);
+    if (view.perspective)
+      projectionMatrix = perspective(view.fieldOfView, aspectRatio,
+                                     view.nearLimit, view.farLimit);
+    else
+      projectionMatrix = ortho(-75, 75, -75, 75, view.nearLimit, view.farLimit);
 
     // ???? check this bit
     var theta = radians(view.theta);        // elevation, +/- 90
@@ -506,6 +534,7 @@ function handleTextureLoaded(image, texture) {
 
       if (animate) {
         item.rotation[1] -= 1;
+        setAngleControls();
       }
 
       matrix = mult(matrix, translate(item.position));
@@ -556,18 +585,8 @@ function handleTextureLoaded(image, texture) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(gl.getUniformLocation(program, "texture"), texture);
-
-    //configureTexture(createPattern(128), 128);
-      /*
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0,
-        gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap( gl.TEXTURE_2D );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
-        gl.NEAREST_MIPMAP_LINEAR );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-
-    */
+      
+      gl.uniform1i(u_mapType, mapType);
 
       gl.drawElements(gl.TRIANGLES, item.shape.numElements, gl.UNSIGNED_SHORT, 0);
     });

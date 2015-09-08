@@ -1,5 +1,5 @@
 canvas {
-    border: 1px solid black;
+    border: 1px solid blue;
     margin: 0 auto;
     float: right;
     margin: 10px;
@@ -16,7 +16,7 @@ label, body {
 
 label {
     display: inline-block;
-    width: 100px;
+    width: 80px;
     text-align: right;
 }
 
@@ -45,6 +45,15 @@ fieldset {
 
 input[type=checkbox] {
     margin-bottom: 10px;
+}
+
+input[type=radio] {
+    vertical-align: middle;
+    margin-bottom: 10px;
+}
+
+select {
+    margin-bottom: 5px;
 }
 
 .slider {
